@@ -168,6 +168,10 @@ EOF
       res.write "<h1>#{@id} (#{id})</h1>"
     end
 
+    unless @repo.description =~ /^Unnamed repository/
+      res.write "<p>#{Rack::Utils.escape_html @repo.description}</p>"
+    end
+
     res.write '<h2>Heads: '
     heads = {}
     @repo.heads.sort_by { |head| head.name }.each { |head|
