@@ -27,11 +27,12 @@ class WibRepos
   def index(env)
     req = Rack::Request.new(env)
     res = Rack::Response.new
-    res.write WibGet::HEADER
+    res.write WibGet::HEADER % "Index of WibGet repositories"
     res.write "<h1>WibGet repositories:</h1>"
     @repos.map { |name, dir, wib|
       res.write %{<li><a href="#{name}/">#{name}</a>, #{wib.repo.description}</li>}
     }
+    res.write "</body></html>"
     res.finish
   end
 end
