@@ -190,7 +190,7 @@ EOF
     @repo.heads.sort_by { |head| head.name }.each { |head|
       commit = head.commit
       heads[head.name] = commit.id
-      res.write %{<a href="#{head.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{head.name}</a> }
+      res.write %{<a href="#{head.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{head.name}</a> }  rescue nil
     }
     res.write "</h2>"
 
@@ -198,7 +198,7 @@ EOF
       res.write '<h2>Tags: '
       @repo.tags.sort_by { |tag| tag.name }.each { |tag|
         commit = tag.commit
-        res.write %{<a href="#{tag.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{tag.name}</a> }
+        res.write %{<a href="#{tag.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{tag.name}</a> }  rescue nil
       }
       res.write "</h2>"
     end
@@ -209,7 +209,7 @@ EOF
         commit = remote.commit
         # Don't show remotes that are mere copie
         next  if heads[remote.name.split("/").last] == commit.id
-        res.write %{<a href="#{commit.id[0..7]}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{remote.name}</a> }
+        res.write %{<a href="#{commit.id[0..7]}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{remote.name}</a> }  rescue nil
       }
       res.write "</h2>"
     end

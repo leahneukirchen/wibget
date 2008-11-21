@@ -3,4 +3,5 @@
 require 'wibget'
 
 run WibRepos.new("rack" => "~/projects/rack",
-                 "trivium" => "~/projects/trivium2")
+                 "trivium" => "~/projects/trivium2",
+                 "wibget" => ".")
