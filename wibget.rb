@@ -158,17 +158,30 @@ EOF
     end
 
     res.write '<h2>Heads: '
-    @repo.heads.each { |head|
+    heads = {}
+    @repo.heads.sort_by { |head| head.name }.each { |head|
       commit = head.commit
+      heads[head.name] = commit.id
       res.write %{<a href="#{head.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{head.name}</a> }
     }
     res.write "</h2>"
 
     unless @repo.tags.empty?
       res.write '<h2>Tags: '
-      @repo.tags.each { |tag|
+      @repo.tags.sort_by { |tag| tag.name }.each { |tag|
         commit = tag.commit
         res.write %{<a href="#{tag.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{tag.name}</a> }
+      }
+      res.write "</h2>"
+    end
+
+    unless @repo.remotes.empty?
+      res.write '<h2>Remotes: '
+      @repo.remotes.sort_by { |remote| remote.name }.each { |remote|
+        commit = remote.commit
+        # Don't show remotes that are mere copie
+        next  if heads[remote.name.split("/").last] == commit.id
+        res.write %{<a href="#{commit.id[0..7]}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{remote.name}</a> }
       }
       res.write "</h2>"
     end
