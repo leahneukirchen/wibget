@@ -9,10 +9,12 @@ require "grit"
 
 class WibRepos
   def initialize(repos)
-    @repos = repos
+    @repos = repos.map { |name, dir|
+      [name, dir, WibGet.new(File.expand_path(dir))]
+    }
+
     @map = Rack::URLMap.new(
-      @repos.map { |name, location|
-        wib = WibGet.new(File.expand_path(location))
+      @repos.map { |name, dir, wib|
         ["/" + name, Rack::Cascade.new([Rack::File.new(wib.repo.git.git_dir),
                                         wib])]
       } << ["/", method(:index)])
@@ -27,8 +29,8 @@ class WibRepos
     res = Rack::Response.new
     res.write WibGet::HEADER
     res.write "<h1>WibGet repositories:</h1>"
-    @repos.map { |name, location|
-      res.write %{<li><a href="#{name}/">#{name}</a></li>}
+    @repos.map { |name, dir, wib|
+      res.write %{<li><a href="#{name}/">#{name}</a>, #{wib.repo.description}</li>}
     }
     res.finish
   end
