@@ -12,7 +12,9 @@ class WibRepos
     @repos = repos
     @map = Rack::URLMap.new(
       @repos.map { |name, location|
-        ["/" + name, WibGet.new(File.expand_path(location))]
+        wib = WibGet.new(File.expand_path(location))
+        ["/" + name, Rack::Cascade.new([Rack::File.new(wib.repo.git.git_dir),
+                                        wib])]
       } << ["/", method(:index)])
   end
 
@@ -87,6 +89,8 @@ dd {
 .ins { color: green; }
 </style>
 EOF
+
+  attr_accessor :repo
 
   def initialize(repo)
     @repo = Grit::Repo.new(repo)
