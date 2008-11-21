@@ -43,28 +43,26 @@ class WibGet < Coset
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"></script>
 <script>
 jQuery(function($){
-  $("pre").hide()
   $(".entry h2").click(function() {
-    $(this).parent().find("pre").toggle()
+    $(this).parent().find("pre").toggleClass("hidden")
   })
   $(".entry h2 a").click(function(e) {
     e.stopPropagation()
   })
-  $(".tree dd").hide()
   $(".tree dt").click(function() {
-    $(this).next("dd").toggle()
+    $(this).next("dd").toggleClass("hidden")
   })
   $("#files").click(function() {
-    if ($(".tree dd:hidden").length > 1)
-      $(".tree dd").show()
+    if ($(".tree dd.hidden").length > 1)
+      $(".tree dd").removeClass("hidden")
     else
-      $(".tree dd").hide()
+      $(".tree dd").addClass("hidden")
   })
   $("#logs").click(function() {
-    if ($(".entry pre:hidden").length > 1)
-      $(".entry pre").show()
+    if ($(".entry pre.hidden").length > 1)
+      $(".entry pre").removeClass("hidden")
     else
-      $(".entry pre").hide()
+      $(".entry pre").addClass("hidden")
   })
 })
 </script>
@@ -96,6 +94,10 @@ dd {
 .entry h2, .tree dt, #logs, #files {
   cursor: pointer;
 }
+
+.hidden {
+  display: none;
+}
 </style>
 EOF
 
@@ -114,7 +116,7 @@ EOF
         res.write "<dt><a href='#{c.id[0..6]}'>#{c.name}</a></dt>"
       when Grit::Tree
         res.write "<dt>#{c.name}/</dt>"
-        res.write "<dd>"
+        res.write "<dd class='hidden'>"
         traverse(res, c)
         res.write "</dd>"
       else
@@ -233,8 +235,8 @@ EOF
       res.write <<EOF
 <div class="entry">
 <h2>#{title}</h2>
-<pre>#{desc}</pre>
-<pre class="diff">#{diff}</pre>
+<pre class="hidden">#{desc}</pre>
+<pre class="hidden diff">#{diff}</pre>
 </div>
 EOF
     }
