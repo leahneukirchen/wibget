@@ -40,8 +40,13 @@ class WibGet < Coset
   PER_PAGE = 10
 
   HEADER = <<'EOF'
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"></script>
-<script>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>%s</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"></script>
+    <script>
 jQuery(function($){
   $(".entry h2").click(function() {
     $(this).parent().find("pre").toggleClass("hidden")
@@ -65,9 +70,8 @@ jQuery(function($){
       $(".entry pre").addClass("hidden")
   })
 })
-</script>
-
-<style>
+    </script>
+    <style>
 body { font: 10px monospace; }
 
 .entry h2 {
@@ -98,7 +102,9 @@ dd {
 .hidden {
   display: none;
 }
-</style>
+    </style>
+  </head>
+  <body>
 EOF
 
   attr_accessor :repo
@@ -106,24 +112,25 @@ EOF
   def initialize(repo)
     @repo = Grit::Repo.new(repo)
     @dir = repo
+    @name = File.basename(@dir)
   end
   
   def traverse(res, tree)
-    res.write "<dl>"
     tree.contents.sort_by { |c| c.name.downcase }.each { |c|
       case c
       when Grit::Blob
-        res.write "<dt><a href='#{c.id[0..6]}'>#{c.name}</a></dt>"
+        res.write "<div><a href='#{c.id[0..6]}'>#{c.name}</a></div>"
       when Grit::Tree
+        res.write "<dl>"
         res.write "<dt>#{c.name}/</dt>"
         res.write "<dd class='hidden'>"
         traverse(res, c)
         res.write "</dd>"
+        res.write "</dl>"
       else
         raise TypeError, "Unknown tree element: #{c.inspect}"
       end
     }
-    res.write "</dl>"
   end
 
   GET("/") {
@@ -142,8 +149,6 @@ EOF
       res.write blob.data
       return
     end
-
-    res.write HEADER
 
     if tree.contents.empty?
       res.status = 404
@@ -167,10 +172,13 @@ EOF
                                   :abbrev => 7},
                                 id)
     if @id != niceid
-      res.write "<h1>#{@id} (#{niceid} = #{id})</h1>"
+      title = "#{@name}: #{@id} (#{niceid} = #{id})"
     else
-      res.write "<h1>#{@id} (#{id})</h1>"
+      title = "#{@name}: #{@id} (#{id})"
     end
+
+    res.write HEADER % title
+    res.write "<h1>#{title}</h1>"
 
     unless @repo.description =~ /^Unnamed repository/
       res.write "<p>#{Rack::Utils.escape_html @repo.description}</p>"
@@ -255,5 +263,8 @@ EOF
     else
       res.write "&gt;&gt;"
     end
+
+    res.write "  </body>"
+    res.write "</html>"
   }
 end
