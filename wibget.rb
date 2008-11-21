@@ -45,6 +45,9 @@ jQuery(function($){
   $(".entry h2").click(function() {
     $(this).parent().find("pre").toggle()
   })
+  $(".entry h2 a").click(function(e) {
+    e.stopPropagation()
+  })
   $(".tree dd").hide()
   $(".tree dt").click(function() {
     $(this).next("dd").toggle()
@@ -87,6 +90,10 @@ dd {
 .info { color: #777; }
 .del { color: red; }
 .ins { color: green; }
+
+.entry h2, .tree dt, #logs, #files {
+  cursor: pointer;
+}
 </style>
 EOF
 
