@@ -237,6 +237,7 @@ EOF
     res.write '<div class="log">'
     res.write '<h2 id="logs">Change log '
     if topic
+      res.write 'without ' + topic + ' '
       res.write %{[<a href="#{rev2url @id}">full log</a>]}
     else
       res.write %{[<a href="(master)#{rev2url @id}">topic log</a>]}
