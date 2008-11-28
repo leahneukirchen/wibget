@@ -288,4 +288,17 @@ EOF
     res.write "  </body>"
     res.write "</html>"
   }
+
+  GET("/{rev}/{path:all}") {
+    @rev = url2rev @rev
+    blob = @repo.tree(@rev) / @path
+    
+    unless blob
+      res.status = 404
+      res.write "<h1>Not found: #{Rack::Utils.escape_html "#@rev:#@path"}</h1>"
+    else
+      res['Content-Type'] = blob.mime_type
+      res.write blob.data
+    end
+  }
 end
