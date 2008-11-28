@@ -134,11 +134,25 @@ EOF
     }
   end
 
+  def rev2url(rev)
+    rev.gsub("/", "--")
+  end
+
+  def url2rev(url)
+    url.gsub("--", "/")
+  end
+  
   GET("/") {
     run("/master", "GET")
   }
 
   GET("/{id}") {
+    @id = url2rev @id
+    if @id =~ /\A\(([\w\/^~-]+)\)/
+      topic = url2rev $1
+      @id = $'
+    end
+
     id = @repo.git.rev_parse({:verify => true}, @id)
 
     begin
@@ -165,7 +179,7 @@ EOF
                           :z => true,
                           :skip => @offset,
                           :max_count => PER_PAGE},
-                        id)
+                        topic ? "^" + topic : "", id)
 
     niceid = @repo.git.describe({ :contains => true,
                                   :always => true,
@@ -190,7 +204,7 @@ EOF
     @repo.heads.sort_by { |head| head.name }.each { |head|
       commit = head.commit
       heads[head.name] = commit.id
-      res.write %{<a href="#{head.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{head.name}</a> }  rescue nil
+      res.write %{<a href="#{rev2url head.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{head.name}</a> }  rescue nil
     }
     res.write "</h2>"
 
@@ -198,7 +212,7 @@ EOF
       res.write '<h2>Tags: '
       @repo.tags.sort_by { |tag| tag.name }.each { |tag|
         commit = tag.commit
-        res.write %{<a href="#{tag.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{tag.name}</a> }  rescue nil
+        res.write %{<a href="#{rev2url tag.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{tag.name}</a> }  rescue nil
       }
       res.write "</h2>"
     end
@@ -209,7 +223,7 @@ EOF
         commit = remote.commit
         # Don't show remotes that are mere copie
         next  if heads[remote.name.split("/").last] == commit.id
-        res.write %{<a href="#{commit.id[0..7]}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{remote.name}</a> }  rescue nil
+        res.write %{<a href="#{rev2url remote.name}" title="#{commit.authored_date.xmlschema} by #{commit.author}">#{remote.name}</a> }  rescue nil
       }
       res.write "</h2>"
     end
@@ -221,7 +235,13 @@ EOF
     res.write '</div>'
     
     res.write '<div class="log">'
-    res.write '<h2 id="logs">Change log:</h2>'
+    res.write '<h2 id="logs">Change log '
+    if topic
+      res.write %{[<a href="#{rev2url @id}">full log</a>]}
+    else
+      res.write %{[<a href="(master)#{rev2url @id}">topic log</a>]}
+    end
+    res.write ':</h2>'
     c = 0
     entries = log.split("\0")
     entries.each_with_index { |desc, i|
